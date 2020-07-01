@@ -5,6 +5,7 @@ using NginxManagement.Infrastructure.Data.Entities;
 using NginxManagement.Infrastructure.FileSystem;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace NginxManagement.Managers
@@ -26,7 +27,6 @@ namespace NginxManagement.Managers
         {
             var template = templateStorage.GetTemplate("Template.txt");
 
-            // store in db
             var entity = new Host() { Name = name, Ip = ipAddress, CreatedByUserId = userId };
             await entity.Create(dbContext);
 
@@ -70,14 +70,14 @@ namespace NginxManagement.Managers
             return error;
         }
 
-        public async Task Remove(string name, int userId)
+        public async Task<HttpStatusCode> Remove(string name, int userId)
         {
             var config = await dbContext.PluginConfigurationValues.ToDictionaryAsync(t => t.Name);
             var serverName = $"{name}.{config["BaseSettings:Host"].Value}";
 
             var host = await dbContext.Hosts.OrderBy(t => t.Id).LastOrDefaultAsync(t => t.Name == name);
             if (host == null)
-                return;
+                return HttpStatusCode.NotFound;
 
             var updatedHost = new Host() {
                 Id = host.Id,
@@ -88,6 +88,8 @@ namespace NginxManagement.Managers
             await updatedHost.Delete<Host>(dbContext);
 
             templateStorage.Remove(config["BaseSettings:DestinationPath"].Value, serverName);
+
+            return HttpStatusCode.OK;
         }
     }
 }

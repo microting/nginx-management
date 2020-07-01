@@ -34,9 +34,9 @@ namespace NginxManagement.Controllers
             if (string.IsNullOrEmpty(name) || userId == null)
                 return BadRequest("Not all parameters were provided");
 
-            await hostsManager.Remove(name, userId.Value);
+            var status  = await hostsManager.Remove(name, userId.Value);
 
-            return Ok();
+            return StatusCode((int)status);
         }
     }
 }
