@@ -1,0 +1,19 @@
+﻿server {{
+        listen   443 ssl;
+        server_name {0};
+        access_log {1};
+        error_log {2};
+        include /etc/nginx/standard-error-pages.conf;
+        location / {{
+                                                proxy_set_header X-Real-IP $remote_addr;
+                                                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                                                proxy_set_header Host $http_host;
+                                                proxy_buffer_size   128k;
+                                                proxy_buffers   4 256k;
+                                                proxy_busy_buffers_size   256k;
+                                                fastcgi_buffers 16 16k;
+                                                fastcgi_buffer_size 32k;
+            proxy_pass          http://{3};
+            proxy_redirect      off;
+        }}
+}}
